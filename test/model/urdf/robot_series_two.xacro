@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot name="robot_series_two" xmlns:xacro="http://www.ros.org/wiki/xacro">
+<!--all parament*******************************************************************************************-->
+   <xacro:include filename="simple_model.xacro" />
+
+<!--Robot Model*******************************************************************************************-->
+
+
+  <link name="base">
+    <xacro:sphere0_model m="1.0" r="0.01"></xacro:sphere0_model>
+  </link>
+  <link name="link1">
+    <xacro:cylinder_model px="0.5" py="0.0" pz="0.0" wx="0.0" wy="${pi/2}" wz="0.0"
+                           m="1.0" r="0.1" h="1.0"></xacro:cylinder_model>
+  </link>
+  <link name="link2">
+    <xacro:cylinder_model px="0.5" py="0.0" pz="0.0" wx="0.0" wy="${pi/2}" wz="0.0"
+                           m="1.0" r="0.1" h="1.0"></xacro:cylinder_model>
+  </link>
+  <link name="end">
+    <xacro:sphere_model px="0.0" py="0.0" pz="0.0" wx="0.0" wy="0.0" wz="0.0"
+                         m="1.0" r="0.1"></xacro:sphere_model>
+  </link>
+
+  <joint name="joint0" type="revolute">
+    <origin xyz="0 0 0" rpy="0 0 0 " />
+    <parent link="base" />
+    <child link="link1" />
+    <axis xyz="0 0 1" />
+    <dynamics damping="0.01" friction="0.01"/>
+    <limit effort="50" velocity="${2*pi}" lower="${-pi/2}" upper="${pi/2}"/>
+    <!--safety_controller k_velocity="" k_position="" soft_lower_limit="" soft_upper_limit=""/-->
+  </joint>
+  <joint name="joint1" type="revolute">
+    <origin xyz="1.0 0 0" rpy="0 0 0 " />
+    <parent link="link1" />
+    <child link="link2" />
+    <axis xyz="0 0 1" />
+    <dynamics damping="0.01" friction="0.01"/>
+    <limit effort="50" velocity="${2*pi}" lower="${-pi/2}" upper="${pi/2}"/>
+    <!--safety_controller k_velocity="" k_position="" soft_lower_limit="" soft_upper_limit=""/-->
+  </joint>
+  <joint name="joint_e" type="fixed">
+    <origin xyz="1.0 0 0.0" rpy="0 0 0 " />
+    <parent link="link2" />
+    <child link="end" />
+  </joint>
+  
+  
+  
+</robot>

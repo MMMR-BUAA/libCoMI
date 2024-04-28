@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot name="simple_model" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+<!--Sphere Model*******************************************************************************************-->
+<!--球转动惯量的参数化-->
+<xacro:macro name="sphere_inertial" params="m r">
+  <mass value="${m}" />
+  <inertia  ixx="${2.0*m*r*r/5.0}" ixy="0.00" ixz="0.00" 
+            iyy="${2.0*m*r*r/5.0}" iyz="0" 
+            izz="${2.0*m*r*r/5.0}" />
+</xacro:macro>
+<xacro:macro name="sphere_model" params="px py pz wx wy wz m r">
+    <inertial>
+      <origin xyz="${px} ${py} ${pz}" rpy="${wx} ${wy} ${wz}"/>
+      <xacro:sphere_inertial m="${m}" r="${r}"></xacro:sphere_inertial>
+    </inertial>
+    <visual>
+      <origin xyz="${px} ${py} ${pz}" rpy="${wx} ${wy} ${wz}"/>
+      <geometry> <sphere radius="${r}"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="${px} ${py} ${pz}" rpy="${wx} ${wy} ${wz}"/>
+      <geometry> <sphere radius="${r}"/></geometry>
+    </collision>
+</xacro:macro>
+<xacro:macro name="sphere0_model" params="m r">
+    <xacro:sphere_model px="0" py="0" pz="0" wx="0" wy="0" wz="0" m="${m}" r="${r}"></xacro:sphere_model>
+</xacro:macro>
+<!--Cylinder Model*******************************************************************************************-->
+<!--圆柱转动惯量的参数化-->
+<xacro:macro name="cylinder_inertial" params="m r h">
+  <mass value="${m}" />
+  <inertia  ixx="${m*(3*r*r+h*h)/12.0}" ixy="0.00" ixz="0.00" 
+            iyy="${m*(3*r*r+h*h)/12.0}" iyz="0" 
+            izz="${m*r*r/2.0}" />
+</xacro:macro>
+<xacro:macro name="cylinder_model" params="px py pz wx wy wz m r h">
+    <inertial>
+      <origin xyz="${px} ${py} ${pz}" rpy="${wx} ${wy} ${wz}"/>
+      <xacro:cylinder_inertial m="${m}" r="${r}" h="${h}"></xacro:cylinder_inertial>
+    </inertial>
+    <visual>
+      <origin xyz="${px} ${py} ${pz}" rpy="${wx} ${wy} ${wz}"/>
+      <geometry> <cylinder length="${h}" radius="${r}" /></geometry>
+    </visual>
+    <collision>
+      <origin xyz="${px} ${py} ${pz}" rpy="${wx} ${wy} ${wz}"/>
+      <geometry> <cylinder length="${h}" radius="${r}"/></geometry>
+    </collision>
+</xacro:macro>
+<xacro:macro name="cylinder0_model" params="m r h">
+    <xacro:cylinder_model px="0" py="0" pz="0" wx="0" wy="0" wz="0" m="${m}" r="${r}" h="${h}"></xacro:cylinder_model>
+</xacro:macro>
+<!--Sphere Model*******************************************************************************************-->
+<!--立方体转动惯量的参数化-->
+<xacro:macro name="box_inertial" params="m x y z">
+  <mass value="${m}" />
+  <inertia  ixx="${m*(y*y+z*z)/12.0}" ixy="0.00" ixz="0.00" 
+            iyy="${m*(x*x+z*z)/12.0}" iyz="0" 
+            izz="${m*(x*x+y*y)/12.0}" />
+</xacro:macro>
+<xacro:macro name="box_model" params="px py pz wx wy wz m x y z">
+    <inertial>
+      <origin xyz="${px} ${py} ${pz}" rpy="${wx} ${wy} ${wz}"/>
+      <xacro:box_inertial m="${m}" x="${x}" y="${y}" z="${z}"></xacro:box_inertial>
+    </inertial>
+    <visual>
+      <origin xyz="${px} ${py} ${pz}" rpy="${wx} ${wy} ${wz}"/>
+      <geometry> <box size="${x} ${y} ${z}"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="${px} ${py} ${pz}" rpy="${wx} ${wy} ${wz}"/>
+      <geometry> <box size="${x} ${y} ${z}"/></geometry>
+    </collision>
+</xacro:macro>
+<xacro:macro name="box0_model" params="m x y z">
+    <xacro:box_model px="0" py="0" pz="0" wx="0" wy="0" wz="0" m="${m}" x="${x}" y="${y}" z="${z}"></xacro:box_model>
+</xacro:macro>
+
+</robot>

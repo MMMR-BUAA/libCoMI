@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/pinocchio_test.dir/src/pinocchio_test.cpp.o  -o pinocchio_test  -Wl,-rpath,/opt/openrobots/lib /opt/openrobots/lib/libpinocchio.so /usr/lib/x86_64-linux-gnu/libboost_filesystem.so /usr/lib/x86_64-linux-gnu/libboost_serialization.so /usr/lib/x86_64-linux-gnu/libboost_system.so 
