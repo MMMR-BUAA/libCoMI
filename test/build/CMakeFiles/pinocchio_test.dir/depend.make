@@ -30,6 +30,8 @@ CMakeFiles/pinocchio_test.dir/src/pinocchio_test.cpp.o: /opt/openrobots/include/
 CMakeFiles/pinocchio_test.dir/src/pinocchio_test.cpp.o: /opt/openrobots/include/hpp/fcl/shape/geometric_shapes.h
 CMakeFiles/pinocchio_test.dir/src/pinocchio_test.cpp.o: /opt/openrobots/include/hpp/fcl/timings.h
 CMakeFiles/pinocchio_test.dir/src/pinocchio_test.cpp.o: /opt/openrobots/include/hpp/fcl/warning.hh
+CMakeFiles/pinocchio_test.dir/src/pinocchio_test.cpp.o: /opt/openrobots/include/pinocchio/algorithm/centroidal-derivatives.hpp
+CMakeFiles/pinocchio_test.dir/src/pinocchio_test.cpp.o: /opt/openrobots/include/pinocchio/algorithm/centroidal-derivatives.hxx
 CMakeFiles/pinocchio_test.dir/src/pinocchio_test.cpp.o: /opt/openrobots/include/pinocchio/algorithm/centroidal.hpp
 CMakeFiles/pinocchio_test.dir/src/pinocchio_test.cpp.o: /opt/openrobots/include/pinocchio/algorithm/centroidal.hxx
 CMakeFiles/pinocchio_test.dir/src/pinocchio_test.cpp.o: /opt/openrobots/include/pinocchio/algorithm/check.hpp

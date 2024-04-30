@@ -1,0 +1,6 @@
+/home/cjw/MMMR_code/libCoMI/CoMI/build/CMakeFiles/install/strip.dir
+/home/cjw/MMMR_code/libCoMI/CoMI/build/CMakeFiles/install/local.dir
+/home/cjw/MMMR_code/libCoMI/CoMI/build/CMakeFiles/install.dir
+/home/cjw/MMMR_code/libCoMI/CoMI/build/CMakeFiles/list_install_components.dir
+/home/cjw/MMMR_code/libCoMI/CoMI/build/CMakeFiles/rebuild_cache.dir
+/home/cjw/MMMR_code/libCoMI/CoMI/build/CMakeFiles/edit_cache.dir

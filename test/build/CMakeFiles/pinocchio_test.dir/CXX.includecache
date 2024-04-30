@@ -25,6 +25,10 @@ pinocchio/algorithm/rnea.hpp
 /home/cjw/MMMR_code/libCoMI/test/src/pinocchio/algorithm/rnea.hpp
 pinocchio/algorithm/centroidal.hpp
 /home/cjw/MMMR_code/libCoMI/test/src/pinocchio/algorithm/centroidal.hpp
+pinocchio/algorithm/centroidal-derivatives.hpp
+/home/cjw/MMMR_code/libCoMI/test/src/pinocchio/algorithm/centroidal-derivatives.hpp
+CoMI/CoI/centerofinertia.hpp
+/home/cjw/MMMR_code/libCoMI/test/src/CoMI/CoI/centerofinertia.hpp
 
 /opt/openrobots/include/hpp/fcl/BV/AABB.h
 hpp/fcl/data_types.h
@@ -253,6 +257,26 @@ chrono
 -
 
 /opt/openrobots/include/hpp/fcl/warning.hh
+
+/opt/openrobots/include/pinocchio/algorithm/centroidal-derivatives.hpp
+pinocchio/multibody/model.hpp
+/opt/openrobots/include/pinocchio/algorithm/pinocchio/multibody/model.hpp
+pinocchio/multibody/data.hpp
+/opt/openrobots/include/pinocchio/algorithm/pinocchio/multibody/data.hpp
+pinocchio/algorithm/check.hpp
+/opt/openrobots/include/pinocchio/algorithm/pinocchio/algorithm/check.hpp
+pinocchio/algorithm/centroidal-derivatives.hxx
+/opt/openrobots/include/pinocchio/algorithm/pinocchio/algorithm/centroidal-derivatives.hxx
+
+/opt/openrobots/include/pinocchio/algorithm/centroidal-derivatives.hxx
+pinocchio/multibody/visitor.hpp
+/opt/openrobots/include/pinocchio/algorithm/pinocchio/multibody/visitor.hpp
+pinocchio/spatial/act-on-set.hpp
+/opt/openrobots/include/pinocchio/algorithm/pinocchio/spatial/act-on-set.hpp
+pinocchio/algorithm/kinematics.hpp
+/opt/openrobots/include/pinocchio/algorithm/pinocchio/algorithm/kinematics.hpp
+pinocchio/algorithm/check.hpp
+/opt/openrobots/include/pinocchio/algorithm/pinocchio/algorithm/check.hpp
 
 /opt/openrobots/include/pinocchio/algorithm/centroidal.hpp
 pinocchio/multibody/model.hpp

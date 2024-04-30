@@ -1,0 +1,8 @@
+/usr/local/lib/cmake/CoMI/CoMITargets.cmake
+/usr/local/include/CoMI/CoM/README.md
+/usr/local/include/CoMI/CoI/centerofinertia-derivatives.hxx
+/usr/local/include/CoMI/CoI/centerofinertia.hpp
+/usr/local/include/CoMI/CoI/centerofinertia-derivatives.hpp
+/usr/local/include/CoMI/CoI/centerofinertia.hxx
+/usr/local/lib/cmake/CoMI/CoMIConfig.cmake
+/usr/local/lib/cmake/CoMI/CoMIConfigVersion.cmake

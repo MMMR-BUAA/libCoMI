@@ -7,6 +7,8 @@
 #include "pinocchio/algorithm/kinematics.hpp"
 #include "pinocchio/algorithm/rnea.hpp"
 #include "pinocchio/algorithm/centroidal.hpp"
+#include "pinocchio/algorithm/centroidal-derivatives.hpp"
+#include "CoMI/CoI/centerofinertia.hpp"
 
 using namespace std;
 
@@ -27,9 +29,9 @@ int main(int argc, char ** argv)
 
     //加载机器人模型
     pinocchio::Model model;
-    //pinocchio::urdf::buildModel(urdf_filename,model);
     pinocchio::JointModelFreeFlyer root_joint;
     pinocchio::urdf::buildModel(urdf_filename,root_joint,model);
+    //pinocchio::urdf::buildModel(urdf_filename,model);
     std::cout << "model name: " << model.name << std::endl;
 
     //模型数据
@@ -45,14 +47,17 @@ int main(int argc, char ** argv)
  
 
     //计算正运动学
-    forwardKinematics(model, data, q);
+    forwardKinematics(model, data, q,v);
     //打印正运动学结果
     for (JointIndex joint_id = 0; joint_id < (JointIndex)model.njoints; ++joint_id)
     {
         std::cout << std::setw(24) << std::left
                   << model.names[joint_id] << ": "
                   << std::fixed << std::setprecision(2)
-                  << data.oMi[joint_id].translation().transpose()
+                  << data.oMi[joint_id].translation().transpose()<< ": "
+                  << std::fixed << std::setprecision(2)
+                  << data.ov[joint_id].linear().transpose()<< "+"
+                  << data.ov[joint_id].angular().transpose()
                   << std::endl;
     }
     //计算动力学
@@ -64,7 +69,20 @@ int main(int argc, char ** argv)
     std::cout << "data.hg = " << data.hg.linear().transpose()<< data.hg.angular().transpose() << std::endl;
     std::cout << "data.com = " << data.com[0].transpose() << std::endl;
     std::cout << "data.vcom = " << data.vcom[0].transpose() << std::endl;
-    
+    Eigen::Matrix<double,6,Eigen::Dynamic> dh_dq=Eigen::MatrixXd::Zero(6,model.nv);
+    Eigen::Matrix<double,6,Eigen::Dynamic> dhdot_dq=Eigen::MatrixXd::Zero(6,model.nv);
+    Eigen::Matrix<double,6,Eigen::Dynamic> dhdot_dv=Eigen::MatrixXd::Zero(6,model.nv);
+    Eigen::Matrix<double,6,Eigen::Dynamic> dhdot_da=Eigen::MatrixXd::Zero(6,model.nv);
+    pinocchio::computeCentroidalDynamicsDerivatives(model,data,q,v,a,dh_dq,dhdot_dq,dhdot_dv,dhdot_da);
+    std::cout << "data.dh_dq = " << dh_dq<< std::endl;
+    std::cout << "data.dhdot_dq = " << dhdot_dq<< std::endl;
+    std::cout << "data.dhdot_dv = " << dhdot_dv<< std::endl;
+    std::cout << "data.dhdot_da = " << dhdot_da<< std::endl;
+    pinocchio::computeMV(model,data);
+    std::cout << "data.hg = " << data.hg.linear().transpose()<< data.hg.angular().transpose() << std::endl;
+
+
+
     std::cout<<"/**********test end*****************/"<<std::endl;
     return 0;
 }
