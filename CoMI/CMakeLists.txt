@@ -42,16 +42,6 @@ install(EXPORT CoMITargets
 )
 install(DIRECTORY "${CoMI_H_LIST}include/" DESTINATION include/CoMI)
 ##########################生成包
-#include(InstallRequiredSystemLibraries)
-#set(CPACK_PACKAGE_NAME "CoMI")
-#set(CPACK_DEBIAN_PACKAGE_NAME "CoMI")
-#set(CPACK_RESOURE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt")
-#set(CPACK_PACKAGE_VERSION_MAJOR "${CoMI_VERSION_MAJOR}")
-#set(CPACK_PACKAGE_VERSION_MINOR "${CoMI_VERSION_MINOR}")
-#set(CPACK_GENERATOR "ZIP")
-#set(CPACK_SET_DESTDIR ON)
-#set(CPACK_OUTPUT_FILE_PRERIX "${pinocchio_INCLUDE_DIRS}/cmake/CoMI")
-#include(CPack)
 include(CMakePackageConfigHelpers)
 # generate the config file that is includes the exports
 configure_package_config_file(${PROJECT_SOURCE_DIR}/src/Config.cmake.in
