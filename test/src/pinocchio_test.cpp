@@ -64,7 +64,7 @@ int main(int argc, char ** argv)
     //const Eigen::VectorXd & tau = pinocchio::rnea(model,data,q,v,a);
     //std::cout << "tau = " << tau.transpose() << std::endl;
     //pinocchio::computeCentroidalMomentum(model,data,q,v);
-    pinocchio::computeCentroidalMomentumTimeVariation(model,data,q,v,a);
+    pinocchio::Force  Hg=pinocchio::computeCentroidalMomentumTimeVariation(model,data,q,v,a);
     std::cout << "data.dhg = " << data.dhg.linear().transpose()<< data.dhg.angular().transpose() << std::endl;
     std::cout << "data.hg = " << data.hg.linear().transpose()<< data.hg.angular().transpose() << std::endl;
     std::cout << "data.com = " << data.com[0].transpose() << std::endl;
@@ -78,8 +78,10 @@ int main(int argc, char ** argv)
     std::cout << "data.dhdot_dq = " << dhdot_dq<< std::endl;
     std::cout << "data.dhdot_dv = " << dhdot_dv<< std::endl;
     std::cout << "data.dhdot_da = " << dhdot_da<< std::endl;
-    pinocchio::computeMV(model,data);
-    std::cout << "data.hg = " << data.hg.linear().transpose()<< data.hg.angular().transpose() << std::endl;
+    pinocchio::Motion A_com=data.oa[0];
+    pinocchio::Force  F_com;
+    pinocchio::computeCenterofInertiaDynamics(model,data,A_com,F_com);
+    std::cout << "F_com = " << F_com.linear().transpose()<<"+"<<F_com.angular().transpose() << std::endl;
 
 
 
