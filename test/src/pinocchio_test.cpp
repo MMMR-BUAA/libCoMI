@@ -78,10 +78,16 @@ int main(int argc, char ** argv)
     std::cout << "data.dhdot_dq = " << dhdot_dq<< std::endl;
     std::cout << "data.dhdot_dv = " << dhdot_dv<< std::endl;
     std::cout << "data.dhdot_da = " << dhdot_da<< std::endl;
+    pinocchio::Force nl_com;
     pinocchio::Motion A_com=data.oa[0];
-    pinocchio::Force  F_com;
-    pinocchio::computeCenterofInertiaDynamics(model,data,A_com,F_com);
-    std::cout << "F_com = " << F_com.linear().transpose()<<"+"<<F_com.angular().transpose() << std::endl;
+    pinocchio::Force F_com;
+    pinocchio::computeCenterofInertiaDynamics_nl(model,data,nl_com);
+    pinocchio::computeCenterofInertiaDynamics_inverse(model,data,nl_com,A_com,F_com);
+    pinocchio::computeCenterofInertiaDynamics_forward(model,data,nl_com,F_com,A_com);
+    pinocchio::computeCenterofInertiaDynamics_nl(model,data,q,v,nl_com);
+    pinocchio::computeCenterofInertiaDynamics_inverse(model,data,A_com,q,v,F_com);
+    pinocchio::computeCenterofInertiaDynamics_forward(model,data,F_com,q,v,A_com);
+    std::cout << "A_com = " << A_com.linear().transpose()<<"+"<<A_com.angular().transpose() << std::endl;
 
 
 
