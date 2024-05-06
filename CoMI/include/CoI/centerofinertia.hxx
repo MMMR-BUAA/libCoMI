@@ -34,21 +34,27 @@ namespace pinocchio
       typedef Eigen::Matrix<Scalar,6,1,Options> Vector6;
       typedef Symmetric3Tpl<Scalar,Options> Symmetric3;
       typedef Eigen::Matrix<Scalar,3,3,Options> Matrix3;
+
       //get the rotate inertia
       Vector6 rI=I.inertia().data();
+
       //get the determinant of rotate inertia
       Scalar detrI=rI(0)*(rI(2)*rI(5)-rI(4)*rI(4))-rI(1)*rI(1)*rI(5)+rI(3)*(rI(1)*rI(4)*2-rI(2)*rI(3));
       assert(!Eigen::internal::isApprox(detrI,0.0) && "the determinant of rotate inertia is zero!");
+
       //get the inverse matrix of the generated inertia using the element.
       Matrix3 rIInv;
       rIInv(0,0)=(rI(2)*rI(5)-rI(4)*rI(4))/detrI;
       rIInv(1,0)=(rI(3)*rI(4)-rI(1)*rI(5))/detrI;rIInv(1,1)=(rI(0)*rI(5)-rI(3)*rI(3))/detrI;
       rIInv(2,0)=(rI(1)*rI(4)-rI(2)*rI(3))/detrI;rIInv(2,1)=(rI(1)*rI(3)-rI(0)*rI(4))/detrI;rIInv(2,2)=(rI(0)*rI(2)-rI(1)*rI(1))/detrI;
       rIInv(0,1)=rIInv(1,0);rIInv(0,2)=rIInv(2,0);rIInv(1,2)=rIInv(2,1);
+      //std::cout<<"rI is "<<std::endl<<std::setprecision(3)<<rI.matrix()<<std::endl;
+      //std::cout<<"rIInv is "<<std::endl<<std::setprecision(3)<<rIInv<<std::endl;
+
       //get the generated velocity
       Matrix3 sp=skew(I.lever());
-      v.linear()=(Matrix3::Identity()/I.mass()-sp*rIInv*sp)*f.linear()+sp*rIInv*f.angular();
-      v.angular()=-sp*rIInv*f.linear()+rIInv*f.angular();
+      v.linear()=(Matrix3::Identity()/I.mass()-sp*rIInv*sp)*(f.linear())+sp*rIInv*(f.angular());
+      v.angular()=-rIInv*sp*(f.linear())+rIInv*(f.angular());
     }
 
     template <typename Scalar, int Options>
@@ -136,7 +142,7 @@ namespace pinocchio
       data.mass[i] = data.oYcrb[i].mass();
     }
     //obtain the CoI parameters.
-    data.mass[0] = data.oYcrb[0].mass();
+    data.mass[0] = data.oYcrb[0].mass(); 
     data.com[0] = data.oYcrb[0].lever();
     data.hg=data.oh[0];
     data.Ig=data.oYcrb[0];
@@ -148,12 +154,23 @@ namespace pinocchio
       nlf_com.linear()=model.gravity981*data.mass[0];
       nlf_com.angular()=data.com[0].cross(nlf_com.linear());
     }
-    nlf_com+=data.hg.motionAction(V_com);
-    nlf_com.linear()-=(data.Itmp.template block<3,3>(Inertia::LINEAR,Inertia::LINEAR) * V_com.linear());
-    nlf_com.linear()-=(data.Itmp.template block<3,3>(Inertia::LINEAR,Inertia::ANGULAR) * V_com.angular());
-    nlf_com.angular()-=(data.Itmp.template block<3,3>(Inertia::ANGULAR,Inertia::LINEAR) * V_com.linear());
-    nlf_com.angular()-=(data.Itmp.template block<3,3>(Inertia::ANGULAR,Inertia::ANGULAR) * V_com.angular());
+    nlf_com += data.hg.motionAction(V_com);
+    //std::cout<<"data.hg is "<<std::setprecision(3)<<data.hg<<std::endl;
+    //std::cout<<"V_com is "<<std::setprecision(3)<<V_com<<std::endl;
+    //std::cout<<"motionAction "<<std::setprecision(3)<<data.hg.motionAction(V_com)<<std::endl;
+    nlf_com.linear() -= (data.Itmp.template block<3,3>(Inertia::LINEAR,Inertia::LINEAR) * V_com.linear());
+    nlf_com.linear() -= (data.Itmp.template block<3,3>(Inertia::LINEAR,Inertia::ANGULAR) * V_com.angular());
+    nlf_com.angular()-= (data.Itmp.template block<3,3>(Inertia::ANGULAR,Inertia::LINEAR) * V_com.linear());
+    nlf_com.angular()-= (data.Itmp.template block<3,3>(Inertia::ANGULAR,Inertia::ANGULAR) * V_com.angular());
+    //std::cout<<"*******************CoI test data*******************************"<<std::endl;
+    //std::cout<<"all mass is "<<std::setprecision(3)<<data.mass[0]<<std::endl;
+    //std::cout<<"all momentum is "<<std::setprecision(3)<<data.hg<<std::endl;
+    //std::cout<<"all CoI in the world is "<<std::setprecision(3)<<data.Ig<<std::endl;
+    //std::cout<<"all derivate of CoI in the world is "<<std::setprecision(3)<<std::endl<<data.Itmp<<std::endl;
+    //std::cout<<"the velocity of CoI is "<<std::setprecision(3)<<V_com<<std::endl;
+    //std::cout<<"****************************************************************"<<std::endl;
   }
+
   //Computes the forward CoI dynamics wrt. to the world system.
   template<typename Scalar, int Options, template<typename,int> class JointCollectionTpl>
   inline void computeCenterofInertiaDynamics_forward(const ModelTpl<Scalar,Options,JointCollectionTpl> & model,
@@ -164,6 +181,7 @@ namespace pinocchio
   {
     A_com=details::CoM_Minvh<Scalar,Options>(data.Ig,F_com+nlf_com);
   }
+
   //Computes the inverse CoI dynamics wrt. to the world system.
   template<typename Scalar, int Options, template<typename,int> class JointCollectionTpl>
   inline void computeCenterofInertiaDynamics_inverse(const ModelTpl<Scalar,Options,JointCollectionTpl> & model,
