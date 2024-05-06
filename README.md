@@ -43,8 +43,18 @@ running test programmer:
 ```
 
 ## Usage
-
-
+**CoMI** follows the template concept.
+You can add the Makefile and include the head in your project to use **CoMI**.
+In the make file, add:
+```bibtex
+find_package(CoMI REQUIRED)
+include_directories(${CoMI_INCLUDE_DIRS})
+```
+In the source file, add:
+```bibtex
+#include "CoMI/CoI/centerofinertia.hpp"
+```
+And you can use the template class or function in your project.
 
 ## Acknowledgments
 The development of **CoMI** is actively supported by the National Natural Sceince Foundation of China (Grant No.).
