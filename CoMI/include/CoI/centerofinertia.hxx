@@ -102,12 +102,13 @@ namespace pinocchio
     
   }; // struct DCcrbaCoIStep
 
-  //Computes the nonlinear force of the CoI dynamics wrt. to the world system.
+  //Computes the nonlinear force of the CoI dynamics wrt. to the world system or floating body.
   template<typename Scalar, int Options, template<typename,int> class JointCollectionTpl, int gra_flag>
   inline void computeCenterofInertiaDynamics_nl(const ModelTpl<Scalar,Options,JointCollectionTpl> & model,
                                     DataTpl<Scalar,Options,JointCollectionTpl> & data,
                                     typename DataTpl<Scalar,Options,JointCollectionTpl>::Force & nlf_com)
   {
+    //check the state of data and model.
     assert(model.check(data) && "data is not consistent with model.");
     
     typedef ModelTpl<Scalar,Options,JointCollectionTpl> Model;
@@ -141,12 +142,13 @@ namespace pinocchio
       data.com[i] = data.oYcrb[i].lever();
       data.mass[i] = data.oYcrb[i].mass();
     }
-    //obtain the CoI parameters.
+    //obtain the CoI parameters based on the world
     data.mass[0] = data.oYcrb[0].mass(); 
     data.com[0] = data.oYcrb[0].lever();
     data.hg=data.oh[0];
     data.Ig=data.oYcrb[0];
     data.Itmp=data.doYcrb[0];
+    //compute the parameter wrt. to the joint floating_flag
     Motion V_com=details::CoM_Minvh<Scalar,Options>(data.Ig,data.hg);
     //compute forward centerofinertia M*dot_V+dot_M*V+ad(V)*M*V=Fout on the whole.
     if(gra_flag)
@@ -154,7 +156,7 @@ namespace pinocchio
       nlf_com.linear()=model.gravity981*data.mass[0];
       nlf_com.angular()=data.com[0].cross(nlf_com.linear());
     }
-    nlf_com += data.hg.motionAction(V_com);
+    //nlf_com += data.hg.motionAction(V_com);
     //std::cout<<"data.hg is "<<std::setprecision(3)<<data.hg<<std::endl;
     //std::cout<<"V_com is "<<std::setprecision(3)<<V_com<<std::endl;
     //std::cout<<"motionAction "<<std::setprecision(3)<<data.hg.motionAction(V_com)<<std::endl;
@@ -172,25 +174,33 @@ namespace pinocchio
   }
 
   //Computes the forward CoI dynamics wrt. to the world system.
-  template<typename Scalar, int Options, template<typename,int> class JointCollectionTpl>
+  template<typename Scalar, int Options, template<typename,int> class JointCollectionTpl,
+          int floating_flag>
   inline void computeCenterofInertiaDynamics_forward(const ModelTpl<Scalar,Options,JointCollectionTpl> & model,
                                     DataTpl<Scalar,Options,JointCollectionTpl> & data,
                                     const typename DataTpl<Scalar,Options,JointCollectionTpl>::Force & nlf_com,
                                     const typename DataTpl<Scalar,Options,JointCollectionTpl>::Force & F_com,
                                     typename DataTpl<Scalar,Options,JointCollectionTpl>::Motion & A_com)
   {
-    A_com=details::CoM_Minvh<Scalar,Options>(data.Ig,F_com+nlf_com);
+    //wrt. to world
+    typename DataTpl<Scalar,Options,JointCollectionTpl>::Motion A_s;
+    A_s=details::CoM_Minvh<Scalar,Options>(data.Ig,F_com+nlf_com);
+    A_com=data.oMi[floating_flag].actInv(A_s);
   }
 
   //Computes the inverse CoI dynamics wrt. to the world system.
-  template<typename Scalar, int Options, template<typename,int> class JointCollectionTpl>
+  template<typename Scalar, int Options, template<typename,int> class JointCollectionTpl,
+           int floating_flag>
   inline void computeCenterofInertiaDynamics_inverse(const ModelTpl<Scalar,Options,JointCollectionTpl> & model,
                                     DataTpl<Scalar,Options,JointCollectionTpl> & data,
                                     const typename DataTpl<Scalar,Options,JointCollectionTpl>::Force & nlf_com,
                                     const typename DataTpl<Scalar,Options,JointCollectionTpl>::Motion & A_com,
                                     typename DataTpl<Scalar,Options,JointCollectionTpl>::Force & F_com)
   {
-    F_com=data.Ig*A_com-nlf_com;
+    //wrt. to world
+    typename DataTpl<Scalar,Options,JointCollectionTpl>::Motion A_s;
+    A_s=data.oMi[floating_flag].act(A_com);
+    F_com=data.Ig*A_s-nlf_com;
   }
 } // namespace pinocchio
 

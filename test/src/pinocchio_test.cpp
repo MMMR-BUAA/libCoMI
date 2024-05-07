@@ -39,10 +39,14 @@ int main(int argc, char ** argv)
 
     //产生关节数据
     Eigen::VectorXd q = pinocchio::neutral(model);
-    q(7)=M_PI/2;q(8)=-M_PI/2;
+    q(0)=0;q(1)=1;q(2)=0;
+    q(3)=0;q(4)=0;q(5)=sin(M_PI/4);q(6)=cos(M_PI/4);
+    q(7)=0;q(8)=0;
     std::cout << "q: " << q.transpose() << std::endl;
     Eigen::VectorXd v = Eigen::VectorXd::Zero(model.nv);
-    v(6)=1;v(7)=-1;
+    v(0)=1;v(1)=0;v(2)=0;
+    v(3)=0;v(4)=0;v(5)=0;
+    v(6)=0;v(7)=0;
     std::cout << "v: " << v.transpose() << std::endl;
     Eigen::VectorXd a = Eigen::VectorXd::Zero(model.nv);
     std::cout << "a: " << a.transpose() << std::endl;
@@ -51,13 +55,19 @@ int main(int argc, char ** argv)
     //计算正运动学
     forwardKinematics(model, data, q,v);
     //打印正运动学结果
-    /*for (JointIndex joint_id = 0; joint_id < (JointIndex)model.njoints; ++joint_id)
+    for (JointIndex joint_id = 0; joint_id < (JointIndex)model.njoints; ++joint_id)
     {
         std::cout << std::setw(12) << std::left
                   << model.names[joint_id] << ": "
                   << std::endl
                   << std::fixed << std::setprecision(2)
+                  << "joint:"<<data.joints[joint_id]
+                  << std::endl
+                  << std::fixed << std::setprecision(2)
                   << "position:"<<data.oMi[joint_id].translation().transpose()
+                  << std::endl
+                  << std::fixed << std::setprecision(2)
+                  << "oreintation:"<<data.oMi[joint_id].rotation()
                   << std::endl
                   << std::fixed << std::setprecision(2)
                   << "velocity:"<< data.ov[joint_id].linear().transpose()<< " + "
@@ -66,16 +76,16 @@ int main(int argc, char ** argv)
                   << std::fixed << std::setprecision(2)
                   << "model.inertias:"<<model.inertias[joint_id]
                   << std::endl;
-    }*/
+    }
     //计算动力学
     //const Eigen::VectorXd & tau = pinocchio::rnea(model,data,q,v,a);
     //std::cout << "tau = " << tau.transpose() << std::endl;
-    //pinocchio::computeCentroidalMomentum(model,data,q,v);
+    pinocchio::computeCentroidalMomentum(model,data,q,v);
     pinocchio::Force  Hg=pinocchio::computeCentroidalMomentumTimeVariation(model,data,q,v,a);
     //std::cout << "data.dhg = " << data.dhg.linear().transpose()<< data.dhg.angular().transpose() << std::endl;
     //std::cout << "data.hg = " << data.hg.linear().transpose()<< data.hg.angular().transpose() << std::endl;
     //std::cout << "data.com = " << data.com[0].transpose() << std::endl;
-    //std::cout << "data.vcom = " << data.vcom[0].transpose() << std::endl;
+    std::cout << "data.vcom = " << data.vcom[0].transpose() << std::endl;
     Eigen::Matrix<double,6,Eigen::Dynamic> dh_dq=Eigen::MatrixXd::Zero(6,model.nv);
     Eigen::Matrix<double,6,Eigen::Dynamic> dhdot_dq=Eigen::MatrixXd::Zero(6,model.nv);
     Eigen::Matrix<double,6,Eigen::Dynamic> dhdot_dv=Eigen::MatrixXd::Zero(6,model.nv);
@@ -87,8 +97,8 @@ int main(int argc, char ** argv)
     //std::cout << "data.dhdot_da = " << dhdot_da<< std::endl;
     pinocchio::Force nl_com;
     pinocchio::Motion A_com=data.oa[0];
-    A_com.linear()[0]=1;A_com.linear()[1]=2;A_com.linear()[2]=3;
-    A_com.angular()[0]=4;A_com.angular()[1]=5;A_com.angular()[2]=6;
+    A_com.linear()[0]=1;A_com.linear()[1]=0;A_com.linear()[2]=0;
+    A_com.angular()[0]=0;A_com.angular()[1]=0;A_com.angular()[2]=0;
     pinocchio::Force F_com;
     std::cout << "A_com = " << std::setprecision(3)<<A_com << std::endl;
     pinocchio::computeCenterofInertiaDynamics_nl(model,data,nl_com);
