@@ -16,10 +16,9 @@
 
 namespace pinocchio
 {
-
   namespace details
   {
-    /// \brief get the generated velocity of the momentum V=M-1*H
+    /// \brief get the generated velocity of the momentum V=inv(M)*H
     ///
     /// \tparam Scalar: The scalar type.
     /// \tparam Options: Eigen Alignment options.
@@ -66,7 +65,7 @@ namespace pinocchio
     }
 
   }
-  /// Computes the Iterative algorithm of CoI dynamics.
+  /// Computes the Iterative algorithm of inertia and its derivate of rigid body tree.
   template<typename Scalar, int Options, template<typename,int> class JointCollectionTpl>
   struct DCcrbaCoIStep
   : public fusion::JointUnaryVisitorBase< DCcrbaCoIStep<Scalar,Options,JointCollectionTpl> >
@@ -86,7 +85,6 @@ namespace pinocchio
     {
       typedef typename Data::Inertia Inertia;
       typedef typename Data::Force   Force;
-      typedef typename SizeDepType<JointModel::NV>::template ColsReturn<typename Data::Matrix6x>::Type ColsBlock;
       
       const JointIndex & i = jmodel.id();
       const JointIndex & parent = model.parents[i];
@@ -94,16 +92,88 @@ namespace pinocchio
       const Force & oh = data.oh[i];
       const typename Inertia::Matrix6 & doYcrb = data.doYcrb[i];
       
+      //std::cout<<"running "<<i<<" parent is "<<parent<<std::endl;
       data.oYcrb[parent] += Y;
-      if(parent > 0)
-        data.oh[parent]+=oh;
+      //if(parent > 0)
+      //{
         data.doYcrb[parent] += doYcrb;
+        data.oh[parent]+=oh;
+      //}
     }
     
   }; // struct DCcrbaCoIStep
 
-  //Computes the nonlinear force of the CoI dynamics wrt. to the world system or floating body.
-  template<typename Scalar, int Options, template<typename,int> class JointCollectionTpl, int gra_flag>
+  //Computes the nonlinear force of the CoI dynamics wrt. to the world system.
+  template<typename Scalar, int Options, template<typename,int> class JointCollectionTpl>
+  inline void computeCenterofInertiaDynamics_nl(const ModelTpl<Scalar,Options,JointCollectionTpl> & model,
+                                    DataTpl<Scalar,Options,JointCollectionTpl> & data,
+                                    typename DataTpl<Scalar,Options,JointCollectionTpl>::Motion &V_s,
+                                    typename DataTpl<Scalar,Options,JointCollectionTpl>::Force & nlf_com)
+  {
+    assert(model.check(data) && "data is not consistent with model.");//check the state of data and model.
+    
+    typedef ModelTpl<Scalar,Options,JointCollectionTpl> Model;
+    typedef typename Model::JointIndex JointIndex;
+    typedef DataTpl<Scalar,Options,JointCollectionTpl> Data;
+    typedef typename Data::Motion Motion;
+    typedef typename Data::Inertia Inertia;
+    typedef typename Data::Force   Force;
+    typedef typename Data::SE3   SE3;
+
+    //////////////////////////////compute every body and its time derivate wrt. to the world
+    data.oYcrb[0].setZero();
+    data.oh[0].setZero();
+    data.ov[0].setZero();
+    data.doYcrb[0].setZero();
+    //get position and velocity of every rigid body wrt. world
+    for(JointIndex i=1; i<(JointIndex)(model.njoints); ++i)
+    {
+      data.oinertias[i] = data.oMi[i].act(model.inertias[i]);//the inertia wrt. world
+      data.oYcrb[i]     = data.oinertias[i];// the inertia wrt.bworld
+      data.ov[i]        = data.oMi[i].act(data.v[i]);// the velocity wrt. world
+      data.oh[i]        = data.oYcrb[i]*data.ov[i];// the momentum wrt. world
+      data.doYcrb[i]    = data.oYcrb[i].variation(data.ov[i]);// the different of inertia wrt. world
+    }
+    //compute inertia and its time derivate of whole robot wrt. world. [0] is the whole robot
+    typedef DCcrbaCoIStep<Scalar,Options,JointCollectionTpl> PassCoI;
+    for(JointIndex i=(JointIndex)(model.njoints-1); i>0; --i)
+    {
+      PassCoI::run(model.joints[i],data.joints[i],
+                 typename PassCoI::ArgsType(model,data));
+    }
+    //record the position and mass of every rigid body tree
+    for(JointIndex i=1; i<(JointIndex)(model.njoints); ++i)
+    {
+      data.com[i] = data.oinertias[i].lever();
+      data.mass[i] = data.oinertias[i].mass();
+    }
+    //obtain whole CoI parameters wrt. to the world.
+    data.mass[0] = data.oYcrb[0].mass(); 
+    data.com[0] = data.oYcrb[0].lever();
+    data.vcom[0] = data.oh[0].linear()/data.oYcrb[0].mass();
+    data.hg=data.oh[0];
+    data.Ig=data.oYcrb[0];
+    data.Itmp=data.doYcrb[0];
+    //compute velocity of CoI model
+    V_s=details::CoM_Minvh<Scalar,Options>(data.Ig,data.hg);
+    //compute the nonlinear force dot(M)*V wrt. world 
+    nlf_com.linear() = -(data.Itmp.template block<3,3>(Inertia::LINEAR,Inertia::LINEAR)   * V_s.linear());
+    nlf_com.linear() = -(data.Itmp.template block<3,3>(Inertia::LINEAR,Inertia::ANGULAR)  * V_s.angular());
+    nlf_com.angular()= -(data.Itmp.template block<3,3>(Inertia::ANGULAR,Inertia::LINEAR)  * V_s.linear());
+    nlf_com.angular()= -(data.Itmp.template block<3,3>(Inertia::ANGULAR,Inertia::ANGULAR) * V_s.angular());
+    //nlf_com += data.hg.motionAction(V_com); world without ad
+    //std::cout<<"*******************CoI test data********************************************"<<std::endl;
+    //std::cout<<"all mass is "<<std::setprecision(3)<<data.mass[0]<<std::endl;
+    //std::cout<<"all momentum in body is "<<std::endl<<std::setprecision(3)<<data.hg<<std::endl;
+    //std::cout<<"all momentum in wrold is "<<std::endl<<std::setprecision(3)<<oM_floating.act(data.hg)<<std::endl;
+    //std::cout<<"all CoI in the body is "<<std::endl<<std::setprecision(3)<<data.Ig<<std::endl;
+    //std::cout<<"all CoI in the world is "<<std::endl<<std::setprecision(3)<<data.Ig.matrix()<<std::endl;
+    //std::cout<<"all derivate of CoI in the world is "<<std::setprecision(3)<<std::endl<<data.Itmp<<std::endl;
+    //std::cout<<"the velocity of CoI is "<<std::endl<<std::setprecision(3)<<V_com<<std::endl;
+    //std::cout<<"****************************************************************"<<std::endl;
+  }
+  /*template<int gra_flag,
+           typename Scalar, int Options, template<typename,int> class JointCollectionTpl>
   inline void computeCenterofInertiaDynamics_nl(const ModelTpl<Scalar,Options,JointCollectionTpl> & model,
                                     DataTpl<Scalar,Options,JointCollectionTpl> & data,
                                     typename DataTpl<Scalar,Options,JointCollectionTpl>::Force & nlf_com)
@@ -171,36 +241,62 @@ namespace pinocchio
     //std::cout<<"all derivate of CoI in the world is "<<std::setprecision(3)<<std::endl<<data.Itmp<<std::endl;
     //std::cout<<"the velocity of CoI is "<<std::setprecision(3)<<V_com<<std::endl;
     //std::cout<<"****************************************************************"<<std::endl;
-  }
+  }*/
 
   //Computes the forward CoI dynamics wrt. to the world system.
-  template<typename Scalar, int Options, template<typename,int> class JointCollectionTpl,
-          int floating_flag>
+  template<int gravity_flag, int floating_i,
+           typename Scalar, int Options, template<typename,int> class JointCollectionTpl>
   inline void computeCenterofInertiaDynamics_forward(const ModelTpl<Scalar,Options,JointCollectionTpl> & model,
                                     DataTpl<Scalar,Options,JointCollectionTpl> & data,
+                                    const typename DataTpl<Scalar,Options,JointCollectionTpl>::Motion & V_s,
                                     const typename DataTpl<Scalar,Options,JointCollectionTpl>::Force & nlf_com,
-                                    const typename DataTpl<Scalar,Options,JointCollectionTpl>::Force & F_com,
+                                    const typename DataTpl<Scalar,Options,JointCollectionTpl>::Force & F_s,
                                     typename DataTpl<Scalar,Options,JointCollectionTpl>::Motion & A_com)
   {
-    //wrt. to world
-    typename DataTpl<Scalar,Options,JointCollectionTpl>::Motion A_s;
-    A_s=details::CoM_Minvh<Scalar,Options>(data.Ig,F_com+nlf_com);
-    A_com=data.oMi[floating_flag].actInv(A_s);
+    assert((model.njoints>floating_i) && "floating body is not exist.");//check floating body state
+
+    typedef DataTpl<Scalar,Options,JointCollectionTpl> Data;
+    typedef typename Data::Motion Motion;
+    typedef typename Data::Force   Force;
+
+    Force F_gravity;
+    Motion A_s;
+    
+    //compute the gravity of the whole robot wrt. the world 
+    F_gravity.linear()=model.gravity981*data.mass[0];
+    F_gravity.angular()=data.com[0].cross(F_gravity.linear());
+    //compute the accelation of CoI wrt. the world
+    A_s=details::CoM_Minvh<Scalar,Options>(data.Ig,F_s+gravity_flag*F_gravity+nlf_com);
+    //trans to the floating rigid system
+    A_com=data.oMi[floating_i].actInv(A_s-data.ov[floating_i].motionAction(V_s));
   }
 
   //Computes the inverse CoI dynamics wrt. to the world system.
-  template<typename Scalar, int Options, template<typename,int> class JointCollectionTpl,
-           int floating_flag>
+  template<int gravity_flag,int floating_i,
+           typename Scalar, int Options, template<typename,int> class JointCollectionTpl>
   inline void computeCenterofInertiaDynamics_inverse(const ModelTpl<Scalar,Options,JointCollectionTpl> & model,
                                     DataTpl<Scalar,Options,JointCollectionTpl> & data,
+                                    const typename DataTpl<Scalar,Options,JointCollectionTpl>::Motion & V_s,
                                     const typename DataTpl<Scalar,Options,JointCollectionTpl>::Force & nlf_com,
                                     const typename DataTpl<Scalar,Options,JointCollectionTpl>::Motion & A_com,
-                                    typename DataTpl<Scalar,Options,JointCollectionTpl>::Force & F_com)
+                                    typename DataTpl<Scalar,Options,JointCollectionTpl>::Force & F_s)
   {
-    //wrt. to world
-    typename DataTpl<Scalar,Options,JointCollectionTpl>::Motion A_s;
-    A_s=data.oMi[floating_flag].act(A_com);
-    F_com=data.Ig*A_s-nlf_com;
+    assert((model.njoints>floating_i) && "floating body is not exist.");//check floating body state
+
+    typedef DataTpl<Scalar,Options,JointCollectionTpl> Data;
+    typedef typename Data::Motion Motion;
+    typedef typename Data::Force   Force;
+
+    Force F_gravity;
+    Motion A_s;
+
+    //compute the gravity of the whole robot wrt. the world 
+    F_gravity.linear()=model.gravity981*data.mass[0];
+    F_gravity.angular()=data.com[0].cross(F_gravity.linear());
+    //compute the accelation of CoI wrt. the world from floating system
+    A_s=data.oMi[floating_i].act(A_com)+data.ov[floating_i].motionAction(V_s);
+    //compute the world force 
+    F_s=data.Ig*A_s-nlf_com-gravity_flag*F_gravity;
   }
 } // namespace pinocchio
 

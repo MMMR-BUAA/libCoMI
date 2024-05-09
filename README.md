@@ -33,9 +33,9 @@ In the test/build folder, build test:
 ```bibtex
 cmake ..
 ```
-and install CoMI:
+and make test:
 ```bibtex
-sudo make install
+make
 ```
 running test programmer:
 ```bibtex
