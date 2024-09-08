@@ -123,7 +123,7 @@ namespace pinocchio
   /// \param[in] v:The data of joint velocity.
   /// \param[out] F_s:The whole body force of the CoI dynamics wrt. the world system.  
   ///
-  template<int gravity_flag = 1,int floating_i = 1,
+  template<int gravity_flag = 1,int floating_i = 0,
            typename Scalar, int Options, template<typename,int> class JointCollectionTpl>
   inline void computeCenterofInertiaDynamics_inverse(const ModelTpl<Scalar,Options,JointCollectionTpl> & model,
                                     DataTpl<Scalar,Options,JointCollectionTpl> & data,
@@ -132,7 +132,7 @@ namespace pinocchio
                                     const typename DataTpl<Scalar,Options,JointCollectionTpl>::Motion & A_com,
                                     typename DataTpl<Scalar,Options,JointCollectionTpl>::Force & F_s);
 
-  template<int gravity_flag = 1,int floating_i = 1,
+  template<int gravity_flag = 1,int floating_i = 0,
            typename Scalar, int Options, template<typename,int> class JointCollectionTpl,
            typename ConfigVectorType, typename TangentVectorType>
   inline void computeCenterofInertiaDynamics_inverse(const ModelTpl<Scalar,Options,JointCollectionTpl> & model,
